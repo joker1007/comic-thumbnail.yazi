@@ -10,7 +10,7 @@ function M:peek(job)
   end
 
   local child = Command("lsar")
-      :args({
+      :arg({
         tostring(job.file.url),
       })
       :stdout(Command.PIPED)
@@ -44,7 +44,7 @@ function M:peek(job)
   local outdir = "/tmp/yazi-" .. random
 
   child, err = Command("unar")
-      :args({
+      :arg({
         "-f",
         "-D",
         "-o",
@@ -62,7 +62,7 @@ function M:peek(job)
   if status.success then
     local extracted = outdir .. "/" .. current
     child = Command("magick")
-        :args({
+        :arg({
           extracted,
           "-resize",
           "480",
@@ -86,7 +86,7 @@ function M:peek(job)
     ya.preview_widgets(job, {})
 
     child = Command("rm")
-        :args({
+        :arg({
           "-r",
           outdir,
         })
