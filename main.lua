@@ -24,7 +24,7 @@ local function find_image_in_archive(job)
     current = next:gsub("\n", "")
     ya.dbg("lsar output: " .. tostring(current))
 
-    if current:find "%.*%.[jJ][pP][gG]" or current:find "%.*%.[pP][nN][gG]" then
+    if current:find "%.*%.[jJ][pP][eE]?[gG]" or current:find "%.*%.[pP][nN][gG]" then
       ya.dbg("Found image: " .. tostring(current) .. " at index " .. tostring(i))
       child:start_kill()
       return i, nil
