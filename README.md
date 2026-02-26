@@ -4,6 +4,10 @@ Plugin for yazi filer to preview images in the archive.
 
 this plugin supports linux only.
 
+## Features
+- Supports any archive format that lsar can handle (zip, rar, 7z, tar.gz, etc.)
+- Resizes images with ImageMagick to match the preview's `max_width` before caching, keeping cache size small
+
 ## Requirements
 - unar
 - imagemagick
