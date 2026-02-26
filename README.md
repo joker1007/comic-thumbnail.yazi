@@ -8,6 +8,12 @@ this plugin supports linux only.
 - unar
 - imagemagick
 
+## Install
+
+```
+ya pkg add joker1007/comic-thumbnail
+```
+
 ## Usage
 
 ```toml
