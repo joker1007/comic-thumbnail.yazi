@@ -118,8 +118,8 @@ function M:peek(job)
     local cha = fs.cha(cache)
     if cha then
       ya.dbg("Using cached image for peek: " .. tostring(cache))
-      ya.image_show(cache, job.area)
-      ya.preview_widgets(job, {})
+      local _, err = ya.image_show(cache, job.area)
+      ya.preview_widget(job, err)
       return
     end
   end
