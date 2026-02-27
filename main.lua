@@ -1,11 +1,14 @@
 local M = {}
 
+local function is_image(filename)
+  local lower = filename:lower()
+  return lower:match "%.jpe?g$" or lower:match "%.png$" or lower:match "%.webp$"
+end
+
 local function find_image_in_archive(job)
-  ya.dbg("execute: lsar " .. tostring(job.file.url))
+  ya.dbg("execute: lsar -j " .. tostring(job.file.url))
   local child, err = Command("lsar")
-    :arg({
-      tostring(job.file.url),
-    })
+    :arg({ "-j", tostring(job.file.url) })
     :stdout(Command.PIPED)
     :stderr(Command.PIPED)
     :spawn()
@@ -14,28 +17,37 @@ local function find_image_in_archive(job)
     return nil, Err("lsar error: " .. tostring(err))
   end
 
-  local i, current = -1, ""
-  repeat
-    local next, event = child:read_line()
-    if event ~= 0 then
-      break
+  local output, wait_err = child:wait_with_output()
+  if wait_err ~= nil then
+    return nil, Err("lsar error: " .. tostring(wait_err))
+  end
+
+  local json = ya.json_decode(output.stdout)
+  if not json or not json.lsarContents then
+    ya.dbg("Failed to parse lsar JSON output")
+    return nil, Err("Failed to parse lsar JSON output")
+  end
+
+  -- Collect image entries
+  local images = {}
+  for _, entry in ipairs(json.lsarContents) do
+    local name = entry.XADFileName
+    if name and is_image(name) then
+      images[#images + 1] = { name = name, index = entry.XADIndex }
     end
+  end
 
-    current = next:gsub("\n", "")
-    ya.dbg("lsar output: " .. tostring(current))
+  if #images == 0 then
+    ya.dbg("No image file found in archive")
+    return nil, nil
+  end
 
-    if current:find "%.*%.[jJ][pP][eE]?[gG]" or current:find "%.*%.[pP][nN][gG]" then
-      ya.dbg("Found image: " .. tostring(current) .. " at index " .. tostring(i))
-      child:start_kill()
-      return i, nil
-    end
+  -- Sort by filename
+  table.sort(images, function(a, b) return a.name < b.name end)
 
-    i = i + 1
-  until i > 10
-
-  child:start_kill()
-  ya.dbg("No image file found in archive")
-  return nil, nil
+  local first = images[1]
+  ya.dbg("Found image: " .. first.name .. " at index " .. tostring(first.index))
+  return first.index, nil
 end
 
 local function extract_and_convert_image(job, index, cache)
